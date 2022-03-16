@@ -1,0 +1,2 @@
+a:4:{s:4:"hash";s:0:"";s:5:"mtime";i:1647466870;s:6:"expire";i:1647474070;s:4:"tags";s:49:"d17_STORE,d17_CONFIG,d17_COLLECTION_DATA,d17_MAGE";}
+[{"store_id":"87","code":"mx-en","website_id":"43","group_id":"43","name":"English","sort_order":"1","is_active":"1"},{"store_id":"88","code":"mx-es","website_id":"43","group_id":"43","name":"Espa\u00f1ol","sort_order":"2","is_active":"1"}]

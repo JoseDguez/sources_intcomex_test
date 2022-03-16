@@ -1,0 +1,315 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Ingenico\Connect\Model\ConfigInterface" type="Ingenico\Connect\Model\Config"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Token\TokenServiceInterface" type="Ingenico\Connect\Model\Ingenico\Token\TokenService"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Api\ClientInterface" type="Ingenico\Connect\Model\Ingenico\Client"/>
+    <preference for="Ingenico\Connect\Model\OrderUpdate\ProcessorInterface" type="Ingenico\Connect\Model\OrderUpdate\Processor"/>
+    <preference for="Ingenico\Connect\Model\OrderUpdate\OrderInterface" type="Ingenico\Connect\Model\OrderUpdate\Order"/>
+    <preference for="Ingenico\Connect\Model\OrderUpdate\SchedulerInterface" type="Ingenico\Connect\Model\OrderUpdate\Scheduler"/>
+    <preference for="Ingenico\Connect\Model\OrderUpdate\HistoryManagerInterface" type="Ingenico\Connect\Model\OrderUpdate\HistoryManager"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Status\Payment\ResolverInterface" type="Ingenico\Connect\Model\Ingenico\Status\Payment\Resolver"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Status\Refund\ResolverInterface" type="Ingenico\Connect\Model\Ingenico\Status\Refund\Resolver"/>
+    <preference for="Ingenico\Connect\Model\Order\Creditmemo\ServiceInterface" type="Ingenico\Connect\Model\Order\Creditmemo\Service"/>
+    <preference for="Ingenico\Connect\Model\StatusResponseManagerInterface" type="Ingenico\Connect\Model\StatusResponseManager"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Status\Payment\PoolInterface" type="Ingenico\Connect\Model\Ingenico\Status\Payment\Pool"/>
+    <preference for="Ingenico\Connect\Model\Ingenico\Status\Refund\PoolInterface" type="Ingenico\Connect\Model\Ingenico\Status\Refund\Pool"/>
+    <preference for="Ingenico\Connect\Model\Order\OrderServiceInterface" type="Ingenico\Connect\Model\Order\OrderService"/>
+    <preference for="Ingenico\Connect\Model\Transaction\TransactionManagerInterface" type="Ingenico\Connect\Model\Transaction\TransactionManager"/>
+    <preference for="Ingenico\Connect\Api\EventRepositoryInterface" type="Ingenico\Connect\Model\Event\EventRepository"/>
+    <preference for="Ingenico\Connect\Api\EventManagerInterface" type="Ingenico\Connect\Model\Event\EventManager"/>
+    <preference for="Ingenico\Connect\Api\Data\EventInterface" type="Ingenico\Connect\Model\Event\DataModel"/>
+    <preference for="Ingenico\Connect\Api\Data\EventSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+    <preference for="Ingenico\Connect\Api\SessionManagerInterface" type="Ingenico\Connect\Model\Ingenico\Session\SessionManager"/>
+    <preference for="Ingenico\Connect\Api\Data\SessionInterface" type="Ingenico\Connect\Model\Ingenico\Session\Session"/>
+    <preference for="Ingenico\Connect\Api\OrderPaymentManagementInterface" type="Ingenico\Connect\Model\Order\Payment\OrderPaymentManagement"/>
+    <preference for="Ingenico\Connect\Api\RefundManagementInterface" type="Ingenico\Connect\Model\Ingenico\Action\Refund\RefundManagement"/>
+    <preference for="Ingenico\Connect\Api\PaymentManagementInterface" type="Ingenico\Connect\Model\Ingenico\Action\Payment\PaymentManagement"/>
+    <preference for="Ingenico\Connect\Api\FrontendLoggerInterface" type="Ingenico\Connect\Logger\FrontendLogger"/>
+
+    <!-- Payment method set up via Magento 2 Payment Gateway API -->
+    <virtualType name="IngenicoFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Ingenico\Connect\Model\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Ingenico\Connect\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">IngenicoValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">IngenicoCommandPool</argument>
+            <argument name="validatorPool" xsi:type="object">IngenicoValidatorPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment value handlers set up -->
+    <virtualType name="IngenicoValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">IngenicoConfigValueHandler</item>
+                <item name="order_place_redirect_url" xsi:type="string">Ingenico\Connect\Gateway\IsRedirect</item>
+                <item name="can_capture" xsi:type="string">Ingenico\Connect\Gateway\CanCapture</item>
+                <item name="can_refund" xsi:type="string">Ingenico\Connect\Gateway\CanRefund</item>
+                <item name="can_capture_partial" xsi:type="string">Ingenico\Connect\Gateway\CanCapturePartial</item>
+                <item name="can_void" xsi:type="string">Ingenico\Connect\Gateway\CanVoid</item>
+                <item name="can_review_payment" xsi:type="string">Ingenico\Connect\Gateway\CanReviewPayment</item>
+                <item name="can_initialize" xsi:type="string">Ingenico\Connect\Gateway\CanInitialize</item>
+                <item name="payment_action" xsi:type="string">Ingenico\Connect\Gateway\PaymentAction</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment config handler set up -->
+    <virtualType name="IngenicoConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Ingenico\Connect\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment validator set up -->
+    <virtualType name="IngenicoValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="availability" xsi:type="string">Ingenico\Connect\Gateway\Validator\Availability</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment config set up -->
+    <virtualType name="Ingenico\Connect\Gateway\Config\Config" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Ingenico\Connect\Model\ConfigProvider::CODE</argument>
+            <argument name="pathPattern" xsi:type="const">Ingenico\Connect\Model\ConfigProvider::PATH_PATTERN</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Payment command pool set up -->
+    <virtualType name="IngenicoCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="capture" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoCaptureCommand</item>
+                <item name="void" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoCancelCommand</item>
+                <item name="cancel" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoCancelCommand</item>
+                <item name="refund" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoRefundCommand</item>
+                <!--accept_payment is handled through ApprovePayment controller-->
+                <item name="deny_payment" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoDenyPaymentCommand</item>
+                <item name="initialize" xsi:type="string">Ingenico\Connect\Gateway\Command\Initialize</item>
+                <item name="authorize" xsi:type="string">Ingenico\Connect\Gateway\Command\IngenicoAuthorizeCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Setup decorator mappings for payment methdos -->
+    <type name="Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodDecoratorPool">
+        <arguments>
+            <argument name="decoratorPool" xsi:type="array">
+                <item name="card" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\CardDecorator\Proxy</item>
+                <item name="redirect" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\RedirectDecorator\Proxy</item>
+                <item name="bankTransfer" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\BankTransferDecorator\Proxy</item>
+                <item name="cash" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\CashDecorator\Proxy</item>
+                <item name="sepaDirectDebit" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\SepaDirectDebitDecorator\Proxy</item>
+                <item name="directDebit" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\DirectDebitDecorator\Proxy</item>
+                <item name="eInvoice" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\EInvoiceDecorator\Proxy</item>
+                <item name="invoice" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\MethodSpecificInput\InvoiceDecorator\Proxy</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Setup decorator mappings for payment products -->
+    <type name="Ingenico\Connect\Model\Ingenico\RequestBuilder\ProductDecoratorPool">
+        <arguments>
+            <argument name="decoratorPool" xsi:type="array">
+                <item name="705" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\ProductSpecificInput\Product705Decorator\Proxy</item>
+                <item name="730" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\ProductSpecificInput\Product730Decorator\Proxy</item>
+                <item name="771" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\ProductSpecificInput\Product771Decorator\Proxy</item>
+                <item name="9000" xsi:type="object">Ingenico\Connect\Model\Ingenico\RequestBuilder\ProductSpecificInput\Product9000Decorator\Proxy</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Ingenico Client setup-->
+    <virtualType name="ingenicoRequestHandler" type="Ingenico\Connect\Logger\Handler\DebugHandler">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/ingenico_epayments.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="ingenicoRequestLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">ingenicoRequestHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Ingenico\Connect\Model\Ingenico\Client\CommunicatorLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\Ingenico\Webhook\Handler">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\Ingenico\Action\HostedCheckout\TokenManagement">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\Ingenico\Client\Communicator">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\Event\Processor">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Controller\Webhooks\Payment">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Controller\Webhooks\Refund">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Logger\FrontendLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">ingenicoRequestLogger</argument>
+        </arguments>
+    </type>
+
+    <!-- Auto order update setup-->
+    <virtualType name="realTimeHandler" type="Ingenico\Connect\Logger\Handler\InfoHandler">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/order_update.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="realTimeLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">realTimeHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Ingenico\Connect\Model\OrderUpdate\Order">
+        <arguments>
+            <argument name="logger" xsi:type="object">realTimeLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\OrderUpdate\Processor">
+        <arguments>
+            <argument name="logger" xsi:type="object">realTimeLogger</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\OrderUpdate\Scheduler">
+        <arguments>
+            <argument name="logger" xsi:type="object">realTimeLogger</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="ingenico_events" xsi:type="object">Ingenico\Connect\Command\ProcessEvents</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Ingenico\Connect\Command\ProcessEvents">
+        <arguments>
+            <argument name="processor" xsi:type="object">Ingenico\Connect\Model\Event\Processor\Proxy</argument>
+            <argument name="appState" xsi:type="object">Magento\Framework\App\State\Proxy</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="paymentStatusHandlerPool" type="Ingenico\Connect\Model\Ingenico\Status\Payment\Pool">
+        <arguments>
+            <argument name="statusHandlers" xsi:type="array">
+                <item name="REDIRECTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\Redirected</item>
+                <item name="PENDING_PAYMENT" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\PendingPayment</item>
+                <item name="ACCOUNT_VERIFIED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\NullStatus</item>
+                <item name="PENDING_FRAUD_APPROVAL" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\PendingFraudApproval</item>
+                <item name="AUTHORIZATION_REQUESTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\AuthorizationRequested</item>
+                <item name="PENDING_APPROVAL" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\PendingApproval</item>
+                <item name="PENDING_CAPTURE" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\PendingCapture</item>
+                <item name="CAPTURE_REQUESTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\CaptureRequested</item>
+                <item name="CAPTURED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\Captured</item>
+                <item name="PAID" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\Paid</item>
+                <item name="REVERSED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\RejectedCapture</item>
+                <item name="CHARGEBACKED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\RejectedCapture</item>
+                <item name="REJECTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\Rejected</item>
+                <item name="REJECTED_CAPTURE" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\RejectedCapture</item>
+                <item name="CANCELLED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Payment\Handler\Cancelled</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="refundStatusHandlerPool" type="Ingenico\Connect\Model\Ingenico\Status\Refund\Pool">
+        <arguments>
+            <argument name="statusHandlers" xsi:type="array">
+                <item name="CREATED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\NullStatus</item>
+                <item name="PENDING_APPROVAL" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\PendingApproval</item>
+                <item name="REJECTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\NullStatus</item>
+                <item name="REFUND_REQUESTED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\RefundRequested</item>
+                <item name="CAPTURED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\Refunded</item>
+                <item name="REFUNDED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\Refunded</item>
+                <item name="CANCELLED" xsi:type="string">Ingenico\Connect\Model\Ingenico\Status\Refund\Handler\Cancelled</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Ingenico\Connect\Model\Ingenico\Status\Payment\Resolver">
+        <arguments>
+            <argument name="statusHandlerPool" xsi:type="object">paymentStatusHandlerPool</argument>
+        </arguments>
+    </type>
+
+    <type name="Ingenico\Connect\Model\Ingenico\Status\Refund\Resolver">
+        <arguments>
+            <argument name="statusHandlerPool" xsi:type="object">refundStatusHandlerPool</argument>
+        </arguments>
+    </type>
+
+    <type name="Ingenico\Connect\Model\Ingenico\RequestBuilder\CreateHostedCheckout\RequestBuilder">
+        <arguments>
+            <argument name="resolver" xsi:type="object">Ingenico\Connect\Locale\Resolver</argument>
+        </arguments>
+    </type>
+    <type name="Ingenico\Connect\Model\Ingenico\Action\CreateHostedCheckout">
+        <arguments>
+            <argument name="localeResolver" xsi:type="object">Ingenico\Connect\Locale\Resolver</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Sales\Model\Order\Payment\State\AuthorizeCommand">
+        <plugin name="updateOrderStatus" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Order\Payment\State\AuthorizeCommand"/>
+    </type>
+
+    <type name="Magento\Sales\Model\Order\Payment\State\CaptureCommand">
+        <plugin name="updateOrderStatus" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Order\Payment\State\CaptureCommand"/>
+    </type>
+
+    <type name="Magento\Sales\Model\Order\StateResolver">
+        <plugin name="updateOrderStatus" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Order\StateResolver"/>
+    </type>
+
+    <!--
+        The following plugins are required to implement Ingenico's refund flow into Magento:
+    -->
+    <type name="Magento\Sales\Model\Order\Creditmemo">
+        <plugin name="preventRefundCancellation" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Order\Creditmemo"/>
+    </type>
+
+    <type name="Magento\Sales\Api\CreditmemoManagementInterface">
+        <plugin name="allowPendingRefunds" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Service\CreditmemoService"/>
+    </type>
+
+    <type name="Magento\Sales\Model\Order\Payment">
+        <plugin name="preventUniqueConstraintViolation" type="Ingenico\Connect\Plugin\Magento\Sales\Model\Order\Payment"/>
+    </type>
+
+    <type name="Ingenico\Connect\Controller\HostedCheckoutPage\ProcessReturn">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+</config>

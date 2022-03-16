@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="cancel_stale" instance="Ingenico\Connect\Cron\CancelStaleOrders" method="execute">
+            <schedule>0 5 * * *</schedule>
+        </job>
+        <job name="process_webhook_events" instance="Ingenico\Connect\Cron\ProcessEvents" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
+    <group id="webhook_workaround">
+        <job name="process_pending_order" instance="Ingenico\Connect\Cron\ProcessPendingOrder" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
+</config>
